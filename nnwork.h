@@ -20,6 +20,9 @@ typedef struct {
 // neuron sigmoid
 double nnwork_sigmoid(double input, double lambda);
 
+// generate random double between low and high
+double randrange(double low, double high);
+
 // initialize new nnwork_t struct
 nnwork_t *nnwork_init(unsigned int i, unsigned int h, unsigned int o);
 

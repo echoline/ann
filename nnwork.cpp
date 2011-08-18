@@ -7,6 +7,9 @@ double nnwork_sigmoid(double input, double lambda) {
 
 // generate random double between low and high
 double randrange(double low, double high) {
+	if (low == high)
+		return low;
+
 	return (high - low) * (rand() / (double)(RAND_MAX)) + low;
 }
 
@@ -27,9 +30,9 @@ nnwork_t *nnwork_init(unsigned int inum, unsigned int hnum, unsigned int onum) {
 	ret->hout = (double*)malloc(sizeof(double) * hnum);
 	ret->lambda = 1.0;
 	ret->rate = 0.25;
-	ret->mrate = .00005;
-	ret->mlow = 0.5;
-	ret->mhigh = 2.0;
+	ret->mrate = .1;
+	ret->mlow = -1;
+	ret->mhigh = 1;
 
 	for (i = 0; i < inum; i++) for (h = 0; h < hnum; h++)
 			ret->ihw[i][h] = randrange(-0.5, 0.5);
@@ -153,6 +156,7 @@ nnwork_t** nnwork_breed(nnwork_t *l, nnwork_t *r, unsigned short children) {
 		ret[c]->mlow = randrange(l->mlow, r->mlow);
 		ret[c]->mhigh = randrange(l->mhigh, r->mhigh);
 		crossover = randrange(1.0, len);
+//		crossover = len;
 
 		o = 0;
 		for (i = 0; i < l->inum; i++) for (h = 0; h < l->hnum; h++) {

@@ -1,7 +1,23 @@
+#include <omp.h>
 #include <iostream>
 #include <fstream>
+#include <map>
 #include "nnwork.h"
 using namespace std;
+
+nnwork_t* select_one(map<double, nnwork_t*> *error_map) {
+	int p;
+
+	while (true) {
+		for (map<double, nnwork_t*>::iterator it = error_map->begin(); it != error_map->end(); it++) {
+			p = (int)randrange(0, 1.618);
+			if (p == 0) {
+				error_map->erase(it);
+				return it->second;
+			}
+		}
+	}
+}
 
 double get_error(double value, double *outputs) {
 	double error = 0.0;
@@ -18,8 +34,8 @@ double get_error(double value, double *outputs) {
 int main(int argc, char **argv) {
 	double input[256], output[10];
 	unsigned long long epoch = 0;
-	nnwork_t *adam;
-	nnwork_t *eve;
+	nnwork_t *first;
+	nnwork_t *second;
 	nnwork_t **population;
 
 	if (argc < 2) {
@@ -29,21 +45,14 @@ int main(int argc, char **argv) {
 
 	srand(time(NULL));
 
-	adam = nnwork_init(256, 100, 10);
- 	eve = nnwork_init(256, 100, 10);
-
-	adam->mrate = 0.0001;
-	adam->mlow = -4.0;
-	adam->mhigh = 4.0;
-	eve->mrate = 0.0000000001;
-	eve->mlow = -0.5;
-	eve->mhigh = 0.5;
-
-	population = nnwork_breed(adam, eve, 20);
+	first = nnwork_init(256, 100, 10);
+ 	second = nnwork_init(256, 100, 10);
+	population = nnwork_breed(first, second, 20);
+	nnwork_destroy(first);
+	nnwork_destroy(second);
 
 	while (true) {
-		nnwork_t *first, *second;
-		double low = 1E+37, lower = 1E+37;
+		map<double, nnwork_t*> error_map;
 		double error_levels[20] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
 					    0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 		for (int i = 1; i < argc; i++) {
@@ -57,6 +66,7 @@ int main(int argc, char **argv) {
 					input[ago] = value;
 				} else {
 					ago = -1;
+					#pragma omp parallel for private(output)
 					for (int p = 0; p < 20; p++) {
 						nnwork_run(population[p], input, output);
 						error_levels[p] += get_error(value, output);
@@ -65,22 +75,17 @@ int main(int argc, char **argv) {
 				ago++;
 			}
 
-			for (int p = 0; p < 20; p++) {
-				if (error_levels[p] < lower) {
-					low = lower;
-					second = first;
-					first = population[p];
-					lower = error_levels[p];
-				} else if (error_levels[p] < low) {
-					second = population[p];
-					low = error_levels[p];
-				}
-			}
+			for (int p = 0; p < 20; p++)
+				error_map.insert(pair<double,nnwork_t*>(error_levels[p], population[p]));
 
-			epoch++;
-			printf("epoch: %lld, first: %lf, second: %lf\n", 
-				epoch, lower, low);
+			printf("epoch: %lld", epoch++);
+			for(map<double, nnwork_t*>::iterator it = error_map.begin(); it != error_map.end(); it++)
+				printf(", %lf", it->first);
+			printf("\n");
 			fflush(stdout);
+
+			first = select_one(&error_map);
+			second = select_one(&error_map);
 
 			nnwork_t **new_pop = nnwork_breed(first, second, 20);
 			for (int p = 0; p < 20; p++)
