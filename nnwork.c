@@ -30,9 +30,9 @@ nnwork_t *nnwork_init(unsigned int inum, unsigned int hnum, unsigned int onum) {
 	ret->hout = (double*)malloc(sizeof(double) * hnum);
 	ret->lambda = 1.0;
 	ret->rate = 0.25;
-	ret->mrate = .1;
-	ret->mlow = -1;
-	ret->mhigh = 1;
+	ret->mrate = .002;
+	ret->mlow = -10;
+	ret->mhigh = 10;
 
 	for (i = 0; i < inum; i++) for (h = 0; h < hnum; h++)
 			ret->ihw[i][h] = randrange(-0.5, 0.5);
@@ -103,7 +103,7 @@ void nnwork_train(nnwork_t *n, double *input, double *desired) {
 	}
 
 	for (h = 0; h < n->hnum; h++) for (i = 0; i < n->inum; i++) {
-		if (n->ihw[h][o] != 0.0) {
+		if (n->ihw[i][h] != 0.0) {
 			sum = 0.0;
 
 			for (o = 0; o < n->onum; o++)
@@ -152,7 +152,7 @@ nnwork_t** nnwork_breed(nnwork_t *l, nnwork_t *r, unsigned short children) {
 
 	for (c = 0; c < children; c++) {
 		ret[c] = nnwork_init(l->inum, l->hnum, l->onum);
-		ret[c]->mrate = randrange(l->mrate, r->mrate);
+		ret[c]->mrate = .002;
 		ret[c]->mlow = randrange(l->mlow, r->mlow);
 		ret[c]->mhigh = randrange(l->mhigh, r->mhigh);
 		crossover = randrange(1.0, len);

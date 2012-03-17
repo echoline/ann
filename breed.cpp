@@ -22,7 +22,7 @@ nnwork_t* select_one(map<double, nnwork_t*> *error_map) {
 double get_error(double value, double *outputs) {
 	double error = 0.0;
 
-	for (int i = 0; i < 10; i++)
+	for (int i = 0; i < 1; i++)
 		if (value == i)
 			error += (1.0 - outputs[i]) * (1.0 - outputs[i]);
 		else
@@ -32,7 +32,7 @@ double get_error(double value, double *outputs) {
 }
 
 int main(int argc, char **argv) {
-	double input[256], output[10];
+	double input[2], output[1];
 	unsigned long long epoch = 0;
 	nnwork_t *first;
 	nnwork_t *second;
@@ -45,9 +45,9 @@ int main(int argc, char **argv) {
 
 	srand(time(NULL));
 
-	first = nnwork_init(256, 100, 10);
- 	second = nnwork_init(256, 100, 10);
-	population = nnwork_breed(first, second, 20);
+	first = nnwork_init(2, 10, 1);
+ 	second = nnwork_init(2, 10, 1);
+	population = nnwork_breed(first, second, 50);
 	nnwork_destroy(first);
 	nnwork_destroy(second);
 
@@ -62,7 +62,7 @@ int main(int argc, char **argv) {
 
 			while (ifs.good()) {
 				ifs >> value;
-				if (ago < 256) {
+				if (ago < 2) {
 					input[ago] = value;
 				} else {
 					ago = -1;
@@ -84,10 +84,11 @@ int main(int argc, char **argv) {
 			printf("\n");
 			fflush(stdout);
 
-			first = select_one(&error_map);
+			first = error_map.begin()->second;
+			error_map.erase(error_map.begin());
 			second = select_one(&error_map);
 
-			nnwork_t **new_pop = nnwork_breed(first, second, 20);
+			nnwork_t **new_pop = nnwork_breed(first, second, 50);
 			for (int p = 0; p < 20; p++)
 				nnwork_destroy(population[p]);
 			free(population);
