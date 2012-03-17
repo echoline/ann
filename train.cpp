@@ -39,7 +39,7 @@ int main(int argc, char **argv) {
 		for (int i = 1; i < argc; i++) {
 			ifstream ifs(argv[i]);
 			double value;
-			short ago = 0;
+			long ago = 0;
 
 			while (ifs.good()) {
 				ifs >> value;

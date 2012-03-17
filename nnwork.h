@@ -1,7 +1,10 @@
-#include <cmath>
-#include <cstdlib>
-#include <cstdio>
-#include <ctime>
+#ifdef __cplusplus 
+extern "C" {
+#endif
+#include <math.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <time.h>
 
 typedef struct {
 	unsigned int inum; // number of inputs
@@ -37,3 +40,7 @@ nnwork_t** nnwork_breed(nnwork_t*, nnwork_t*, unsigned short children);
 
 // free a nnwork_t
 void nnwork_destroy(nnwork_t *n);
+
+#ifdef __cplusplus 
+}
+#endif
